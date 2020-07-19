@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototype</title>
+    <link href="/static/bulma.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://kit.fontawesome.com/3d5424e018.js" crossorigin="anonymous"></script>
+    <script>
+        function show_extra(button,id,data,cid){
+            if ($('#'+id).is(":visible")){
+                $(button).html('<i class="fas fa-arrow-down"></i>')
+            }
+            else{
+                $(button).html('<i class="fas fa-arrow-up"></i>')
+            }
+            $('#'+id).animate({
+                height: "toggle"
+            });
+
+            var clickNum = $(button).data('clickNum');
+            if (clickNum = 1){
+                gen_chart(data,cid);
+            }
+            
+            console.log(clickNum)
+
+            $(button).data('clickNum', ++clickNum);
+        }
+
+        function gen_chart(array,cid){
+            google.charts.load('current', {'packages':['corechart']});
+            google.charts.setOnLoadCallback(drawChart);
+    
+            function drawChart() {
+            array.unshift(["Week","Actual","Expected"])
+            var data = google.visualization.arrayToDataTable(array);
+    
+            var options = {
+                title: "Overall Minutes",
+
+                legend: { position: 'bottom' },
+                width: 900,
+                height: 500
+            };
+            var chart = new google.visualization.BarChart(document.getElementById(cid.id));    
+            chart.draw(data, options);
+
+            }
+        }
+    </script>
+    <style>
+        .settings{
+            color: gray;
+            background-color: transparent; 
+            border: none;
+        }
+        .dropdown {
+            float: right;
+        }          
+        .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+        }        
+        .dropdown-content a {
+        float: none;
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        text-align: left;
+        }        
+        .dropdown-content a:hover {
+        background-color: #ddd;
+        }        
+        .dropdown:hover .dropdown-content {
+        display: block;
+        }
+    </style>
+</head>
+<body>
+    <section class="hero is-success is-fullheight">
+        <div class="hero-body">
+          <div class="container has-text-centered">
+            {% for int in data['intrest'] %}
+            <div class="box has-text-left" >
+                <div class="dropdown">
+                    <button class="settings">
+                        <i class="fa fa-cog fa-lg" aria-hidden="true"></i>              
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="#">Edit</a>
+                        <a href="#">Delete</a>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <span class="label is-large">{{ int['name'] }}</span>
+                    <button class="button is-rounded is-info" onclick="show_extra(this,'extra{{ int['id'] }}',JSON.parse('{{ int['array'] }}'),chart_{{ int['id'] }});">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>
+                    </div>
+                </div>
+                
+                <p class="notification is-light">{{ int['note'] }}</p>
+                <div id="extra{{ int['id'] }}" style="display: none;">
+                    <div id="chart_{{ int['id'] }}" style="width: 900px; height: 500px"></div>
+                    {% for week in int['info'] %}
+                    <div class="notification is-dark">
+                        <label class="tag is-medium is-info">Week: {{ week['week_no']+1 }}</label>
+                        <p>Expected minutes: {{ week['expected'] }} &nbsp;&nbsp;&nbsp; Actual minutes: {{ week['actual'] }}</p>
+                    </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="field">
+                <div class="control">
+                    <button class="button is-info" onclick="">Add a new hobby</button> 
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <button class="button is-info" onclick="window.location.href='{{ url_for('reset') }}';">Reset JSON</button> 
+                </div>
+            </div>
+          </div>
+        </div>
+      </section>
+</body>
+</html>
